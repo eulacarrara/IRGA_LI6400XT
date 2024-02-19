@@ -1,0 +1,154 @@
+# Eula R. Carrara - 19 de fevereiro de 2024 #
+########     eulacarrara@gmail.com   ########
+
+# Script em R para limpar os "remark" da saída do IRGA LI6400XT
+
+# INSTRUÇÕES:
+# *** Os arquivos DEVEM estar em .xlsx (e não .xls) ***
+
+# Atenção: Executar o código todo, e não linha a linha.
+# Ele vai executar para todos os arquivos .xlsx da pasta
+
+################################################
+# INICIO
+
+# Limpar ambiente
+rm(list=ls())
+# Desabilitar notação científica
+options(scipen = 999)
+
+install.packages("readxl")
+
+# Diretorio de trabalho (pasta que contem os .xlsx)
+## COLOCAR AQUI O ENDEREÇO COMPLETO DA PASTA DE TRABALHO QUE CONTEM AS SAIDAS .xlsx DO IRGA
+path_dir <- "C:/Users/Documents/"
+files_avai <- list.files(path_dir, pattern="*.xlsx$"); files_avai
+
+
+for(i in files_avai){
+path <- paste0(path_dir, i)
+dados <- as.data.frame(readxl::read_excel(path, skip=9, col_names=TRUE))[-1,]
+head(dados)
+table(dados$Obs)
+dim(dados)
+
+# Criar uma sequencia de 1 a N para garantir a ordem do arquivo
+dados$seq <- 1:length(dados$Obs)
+head(dados); tail(dados)
+
+head(dados$HHMMSS,20)
+
+# Pegar apenas as linhas com "Remark="
+remark <- subset(dados, Obs == "Remark=")
+head(remark,15); dim(remark)
+
+# Excluir os HHMMSS que começam com "1 hora"
+library(dplyr)
+idx <- grepl('\"1 ', remark$HHMMSS)
+remark <- remark[!idx,]
+head(remark,15); dim(remark)
+
+# Separar HHMMSS em colunas
+library(stringr)
+remark[c("V1", "V2")] <- str_split_fixed(remark$HHMMSS, " ", 2)
+head(remark)
+
+# Visualizar V1 e V2
+remark$V1	#conferir se tem só hora no formato xx:xx:xx
+remark$V2
+
+# Excluir cada linha que comece com os codigos Fs, MPF, Fm, Fo e Warning
+idx <- grepl('Fs=', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('MPF#', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl("Fm'", remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl("Fo'", remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Warning', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('RF#', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('LCF', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('CO2', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Coolers:', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Flow:', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Launched', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Unknown!', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Dark#', remark$V2)
+remark <- remark[!idx,]
+
+# ATENÇÃO:
+## para adicionar mais "remarks" para serem excluidos, basta substituir o XXXXX pela palavra que inicia o remark apos a hora
+# retirar os # antes do codigo abaixo
+
+#idx <- grepl('XXXXX', remark$V2)
+#remark <- remark[!idx,]
+
+#idx <- grepl('XXXXX', remark$V2)
+#remark <- remark[!idx,]
+
+#idx <- grepl('XXXXX', remark$V2)
+#remark <- remark[!idx,]
+
+
+# Deixar o remark com o formato original do IRGA (HHMMSS = "11:03:04 gg2")
+remark$HHMMSS <- paste0(remark$V1," ",remark$V2)
+head(remark)
+
+# Excluir colunas auxiliares
+remark <- subset(remark, select= -c(V1, V2))
+head(remark)
+
+# Pegar os dados sem todos os "Remark="
+validos <- subset(dados, Obs != "Remark=")
+head(validos,10); dim(validos)
+
+# Conferir se as colunas possuem a mesma sequencia
+## ATENCAO NESSE PASSO!!
+# 	Se for o mesmo nome mas com erro de caracter, por exemplo: EBal? e EBal., pode deixar.
+# 	Importante: conferir a ordem, se as colunas significam a mesma coisa
+colnames(remark)
+colnames(validos)
+
+# Rodar o comando abaixo para garantir que tenham o mesmo nome de coluna: 
+colnames(remark) <- colnames(validos)
+
+# Juntar dados validos (sem remark) com as linhas das especies (remark)
+final <- rbind(validos, remark)
+head(final); tail(final)
+
+# Ordenar pela "seq" para ordenar a base de dados corretamente
+final$seq <- as.numeric(final$seq)
+final <- final[order(final$seq),]
+head(final, 20)
+
+# Conferir ordem (podem faltar números (remakes excluidos), mas a ordem precisa ser crescente)
+head(final$seq, 20); tail(final$seq, 20)
+
+# Exportar arquivo limpo
+#install.packages("openxlsx")
+openxlsx::write.xlsx(final, file = paste0(path_dir, gsub(".xlsx", "", i), "_LIMPO.xlsx")) #Arquivo final
+}
+
+# FIM
+################################################
