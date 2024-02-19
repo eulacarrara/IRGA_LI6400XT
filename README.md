@@ -11,10 +11,10 @@ Ele funciona em modo "loop", ou seja, basta ter uma pasta com vários arquivos d
 
 Qualquer dúvida, pode ser enviado um e-mail para eulacarrara@gmail.com que posso auxiliar.
 
-# Script em R para limpar os "remark" da saída do IRGA LI6400XT
-# *** Os arquivos DEVEM estar em .xlsx (e não .xls) ***
-# Atenção: Executar o código todo, e não linha a linha.
-# Ele vai executar para todos os arquivos .xlsx da pasta
+ Script em R para limpar os "remark" da saída do IRGA LI6400XT
+ *** Os arquivos DEVEM estar em .xlsx (e não .xls) ***
+ Atenção: Executar o código todo, e não linha a linha.
+ Ele vai executar para todos os arquivos .xlsx da pasta
 
 ===================================
 
@@ -31,7 +31,7 @@ It works in "loop" mode, i.e. you just need a folder with several .xlsx output f
 
 If you have any questions, please send an e-mail to eulacarrara@gmail.com and I'll be happy to help.
 
-# R script to clear the "remark" from the output of the IRGA LI6400XT
+ R script to clear the "remark" from the output of the IRGA LI6400XT
 *** The files MUST be in .xlsx (not .xls) ***
-# Attention: Run the whole code, not line by line.
-# It will run for all the .xlsx files in the folder
+ Attention: Run the whole code, not line by line.
+ It will run for all the .xlsx files in the folder
