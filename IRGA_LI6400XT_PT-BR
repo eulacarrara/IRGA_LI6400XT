@@ -1,7 +1,7 @@
 # Eula R. Carrara - 19 de fevereiro de 2024 #
 ########     eulacarrara@gmail.com   ########
 
-# Script em R para limpar os "remark" da saída do IRGA LI6400XT
+# Script em R para limpar as linhas "remark" da saída do IRGA LI6400XT
 
 # INSTRUÇÕES:
 # *** Os arquivos DEVEM estar em .xlsx (e não .xls) ***
