@@ -1,0 +1,134 @@
+# Eula R. Carrara - 19 de fevereiro de 2024 #
+########     eulacarrara@gmail.com   ########
+
+# R script to clear the "remark" lines from the output of the IRGA LI6400XT
+
+# INSTRUCTIONS:
+# *** Files MUST be in .xlsx (not .xls) ***
+
+# Attention: Run the whole code, not line by line.
+# It will run for all the .xlsx files in the folder
+
+################################################
+# START
+
+# Clear environment
+rm(list=ls())
+# Disable scientific notation
+options(scipen = 999)
+
+install.packages(c("readxl", "openxlsx", "stringr", "dplyr"))
+
+# Working directory (folder containing the .xlsx)
+## PUT HERE THE FULL ADDRESS OF THE WORKFOLDER CONTAINING THE IRGA .xlsx OUTPUTS
+path_dir <- "C:/Users/Documents/"
+files_avai <- list.files(path_dir, pattern="*.xlsx$"); files_avai
+
+
+for(i in files_avai){
+path <- paste0(path_dir, i)
+dados <- as.data.frame(readxl::read_excel(path, skip=9, col_names=TRUE))[-1,]
+head(dados)
+table(dados$Obs)
+dim(dados)
+
+dados$seq <- 1:length(dados$Obs)
+head(dados); tail(dados)
+
+head(dados$HHMMSS,20)
+
+remark <- subset(dados, Obs == "Remark=")
+head(remark,15); dim(remark)
+
+library(dplyr)
+idx <- grepl('\"1 ', remark$HHMMSS)
+remark <- remark[!idx,]
+head(remark,15); dim(remark)
+
+library(stringr)
+remark[c("V1", "V2")] <- str_split_fixed(remark$HHMMSS, " ", 2)
+head(remark)
+
+remark$V1	#conferir se tem só hora no formato xx:xx:xx
+remark$V2
+
+idx <- grepl('Fs=', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('MPF#', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl("Fm'", remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl("Fo'", remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Warning', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('RF#', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('LCF', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('CO2', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Coolers:', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Flow:', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Launched', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Unknown!', remark$V2)
+remark <- remark[!idx,]
+
+idx <- grepl('Dark#', remark$V2)
+remark <- remark[!idx,]
+
+# ATTENTION:
+## to add more "remarks" to be deleted, just replace the XXXXX with the word that starts the remark after the hour
+# remove the # before the code below
+
+#idx <- grepl('XXXXX', remark$V2)
+#remark <- remark[!idx,]
+
+#idx <- grepl('XXXXX', remark$V2)
+#remark <- remark[!idx,]
+
+#idx <- grepl('XXXXX', remark$V2)
+#remark <- remark[!idx,]
+
+#
+
+remark$HHMMSS <- paste0(remark$V1," ",remark$V2)
+head(remark)
+
+remark <- subset(remark, select= -c(V1, V2))
+head(remark)
+
+validos <- subset(dados, Obs != "Remark=")
+head(validos,10); dim(validos)
+
+colnames(remark) <- colnames(validos)
+
+final <- rbind(validos, remark)
+head(final); tail(final)
+
+final$seq <- as.numeric(final$seq)
+final <- final[order(final$seq),]
+head(final, 20)
+
+head(final$seq, 20); tail(final$seq, 20)
+
+# Export the final file
+openxlsx::write.xlsx(final, file = paste0(path_dir, gsub(".xlsx", "", i), "_LIMPO.xlsx")) # Final File
+}
+
+# END
+################################################
